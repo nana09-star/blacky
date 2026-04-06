@@ -9,22 +9,31 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+    // FastAPI expects Form Data (URLSearchParams), not raw JSON
     const params = new URLSearchParams();
-    params.append("username", email);
-    params.append("password", password);
+    params.append("username", form.email); // FastAPI maps 'username' to the email field
+    params.append("password", form.password);
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/login", params);
-      
+      const res = await axios.post("http://127.0.0.1:8000/login", params, {
+        headers: { 
+          "Content-Type": "application/x-www-form-urlencoded" 
+        }
+      });
+
       if (res.data.access_token) {
         localStorage.setItem("token", res.data.access_token);
-        alert("Success! Entering Frannas...");
-        router.push("/dashboard");
+        router.push("/dashboard"); // Redirect to your gold dashboard
       }
+    } catch (err) {
+      // Friendly error handling for the UI
+      setError(err.response?.data?.detail || "Connection to Frannas Backend failed.");
+    }
+  };
     } catch (err) {
       console.error(err);
       const message = err.response?.data?.detail || "Invalid email or password";
