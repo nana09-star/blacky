@@ -9,34 +9,32 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
-    // FastAPI expects Form Data (URLSearchParams), not raw JSON
+    // 1. Prepare the form data for FastAPI
     const params = new URLSearchParams();
-    params.append("username", form.email); // FastAPI maps 'username' to the email field
-    params.append("password", form.password);
+    params.append("username", email); // Using 'email' directly from your state
+    params.append("password", password);
 
     try {
+      // 2. Send the request to your backend
       const res = await axios.post("http://127.0.0.1:8000/login", params, {
         headers: { 
           "Content-Type": "application/x-www-form-urlencoded" 
         }
       });
 
+      // 3. If successful, save the token and go to the gold dashboard
       if (res.data.access_token) {
         localStorage.setItem("token", res.data.access_token);
-        router.push("/dashboard"); // Redirect to your gold dashboard
+        router.push("/dashboard"); 
       }
     } catch (err) {
-      // Friendly error handling for the UI
-      setError(err.response?.data?.detail || "Connection to Frannas Backend failed.");
-    }
-  };
-    } catch (err) {
       console.error(err);
-      const message = err.response?.data?.detail || "Invalid email or password";
+      // 4. Handle errors gracefully
+      const message = err.response?.data?.detail || "Invalid email or password or Backend offline";
       setError(message);
     }
   };
@@ -51,6 +49,7 @@ export default function LoginPage() {
         <input 
           type="email" 
           placeholder="Email Address" 
+          value={email}
           onChange={(e) => setEmail(e.target.value)} 
           required 
           style={{ padding: "15px", border: "2px solid black", borderRadius: "8px" }} 
@@ -59,6 +58,7 @@ export default function LoginPage() {
         <input 
           type="password" 
           placeholder="Password" 
+          value={password}
           onChange={(e) => setPassword(e.target.value)} 
           required 
           style={{ padding: "15px", border: "2px solid black", borderRadius: "8px" }} 
